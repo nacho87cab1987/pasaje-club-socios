@@ -60,12 +60,9 @@ export const viajes = {
   /** Documentación ya cargada en el expediente por la vendedora. */
   documentos: (viajeId: number) =>
     api(`socios_viaje_documentos.php?viaje_id=${viajeId}`),
-  /** Estado de cuenta: total, pagado, saldo y lista de pagos. */
+  /** Estado de cuenta: total, pagado, saldo y lista de pagos. Solo lectura. */
   cuenta: (viajeId: number) =>
     api(`socios_viaje_pagos.php?viaje_id=${viajeId}`),
-  /** Subir un comprobante de pago. */
-  subirComprobante: (viajeId: number, form: FormData) =>
-    apiUpload(`socios_viaje_pagos.php?viaje_id=${viajeId}`, form),
 };
 
 // ── Beneficios y canjes ───────────────────────────────
