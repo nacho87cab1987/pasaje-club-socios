@@ -51,6 +51,32 @@ export default function PerfilScreen({ navigation }: any) {
           <Dato clave="Teléfono" valor={me?.telefono || '—'} />
         </View>
 
+        {/* Sin DNI no se le pueden acreditar los viajes que ya hizo,
+            así que el aviso va antes que el botón común. */}
+        {!me?.dni ? (
+          <Pressable
+            style={s.completar}
+            onPress={() => navigation.navigate('EditarPerfil')}
+          >
+            <Ionicons name="alert-circle" size={20} color={t.color.gold} />
+            <View style={s.completarTexto}>
+              <Text style={s.completarTit}>Cargá tu DNI</Text>
+              <Text style={s.completarTxt}>
+                Si ya viajaste con nosotros, sumás esos puntos
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={t.color.borde} />
+          </Pressable>
+        ) : (
+          <Pressable
+            style={s.editar}
+            onPress={() => navigation.navigate('EditarPerfil')}
+          >
+            <Ionicons name="create-outline" size={18} color={t.color.teal} />
+            <Text style={s.editarTxt}>Editar mis datos</Text>
+          </Pressable>
+        )}
+
         <Text style={s.seccion}>Más</Text>
         <View style={s.bloque}>
           {SECCIONES.map((sec, i) => (
@@ -106,6 +132,23 @@ const s = StyleSheet.create({
   },
   datoClave: { ...t.texto.chico, color: t.color.textoSuave },
   datoValor: { ...t.texto.chicoFuerte, color: t.color.texto },
+  editar: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: t.espacio.sm, paddingVertical: t.espacio.lg, marginTop: t.espacio.md,
+  },
+  editarTxt: { ...t.texto.chicoFuerte, color: t.color.teal },
+  completar: {
+    flexDirection: 'row', alignItems: 'center',
+    gap: t.espacio.md,
+    backgroundColor: 'rgba(215,202,74,0.10)',
+    borderRadius: t.radio.medio,
+    borderWidth: 1, borderColor: 'rgba(215,202,74,0.35)',
+    padding: t.espacio.lg,
+    marginTop: t.espacio.md,
+  },
+  completarTexto: { flex: 1 },
+  completarTit: { ...t.texto.cuerpoFuerte, color: t.color.texto },
+  completarTxt: { ...t.texto.pie, color: t.color.textoSuave },
   seccion: {
     ...t.texto.chicoFuerte, color: t.color.textoSuave, 
     marginTop: t.espacio.xl, marginBottom: t.espacio.sm,

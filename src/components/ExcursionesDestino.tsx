@@ -19,7 +19,6 @@ export default function ExcursionesDestino({
 }) {
   const [excursiones, setExcursiones] = useState<any[]>([]);
   const [civUrl, setCivUrl] = useState<string | null>(null);
-  const [verCiv, setVerCiv] = useState(false);
   const [cargando, setCargando] = useState(true);
 
   const cargar = useCallback(async () => {
@@ -99,25 +98,20 @@ export default function ExcursionesDestino({
             </Text>
           </View>
 
-          {verCiv ? (
-            <View style={s.civCaja}>
-              <WebView
-                source={{ uri: civUrl }}
-                style={s.civWeb}
-                startInLoadingState
-                renderLoading={() => (
-                  <View style={s.centro}>
-                    <ActivityIndicator color={CIV_ROSA} />
-                  </View>
-                )}
-              />
-            </View>
-          ) : (
-            <Pressable style={s.civBoton} onPress={() => setVerCiv(true)}>
-              <Ionicons name="ticket-outline" size={20} color="#fff" />
-              <Text style={s.civBotonTxt}>Ver actividades en {destino}</Text>
-            </Pressable>
-          )}
+          {/* Se carga sola, igual que el mapa: si hay que tocar un
+              botón para verla, casi nadie la ve. */}
+          <View style={s.civCaja}>
+            <WebView
+              source={{ uri: civUrl }}
+              style={s.civWeb}
+              startInLoadingState
+              renderLoading={() => (
+                <View style={s.centro}>
+                  <ActivityIndicator color={CIV_ROSA} />
+                </View>
+              )}
+            />
+          </View>
 
           <Pressable
             style={s.civLink}
@@ -170,14 +164,6 @@ const s = StyleSheet.create({
     marginBottom: t.espacio.md,
   },
   civAvisoTxt: { ...t.texto.chicoFuerte, color: CIV_ROSA },
-  civBoton: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: t.espacio.sm,
-    backgroundColor: CIV_ROSA,
-    borderRadius: t.radio.medio,
-    paddingVertical: t.espacio.lg,
-  },
-  civBotonTxt: { ...t.texto.cuerpoFuerte, color: '#fff' },
   civCaja: {
     height: 560,
     backgroundColor: t.color.superficie,
