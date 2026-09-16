@@ -82,6 +82,16 @@ export const grupales = {
   /** Excursiones que la agencia cargó para un destino. */
   excursionesDestino: (destino: string) =>
     api(`excursiones.php?destino=${encodeURIComponent(destino)}`),
+  /**
+   * Resuelve si Civitatis tiene página para ese destino.
+   * Sin esto, los destinos que no están en su catálogo terminan
+   * mostrando excursiones de cualquier lado.
+   */
+  civitatis: (destino: string) =>
+    api(`socios_civitatis.php?destino=${encodeURIComponent(destino)}`),
+  /** Guía del destino: imperdibles, tips, gastronomía. */
+  infoDestino: (destino: string) =>
+    api(`socios_destino_info.php?destino=${encodeURIComponent(destino)}`),
 };
 
 // ── Wishlist, destinos, ofertas ───────────────────────
