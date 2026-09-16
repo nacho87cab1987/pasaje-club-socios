@@ -79,6 +79,9 @@ export const grupales = {
   misGrupos: () => api('grupos.php'),
   fotos: (grupalId: number) => api(`grupal_fotos.php?grupal_id=${grupalId}`),
   excursiones: (grupalId: number) => api(`excursiones.php?grupal_id=${grupalId}`),
+  /** Excursiones que la agencia cargó para un destino. */
+  excursionesDestino: (destino: string) =>
+    api(`excursiones.php?destino=${encodeURIComponent(destino)}`),
 };
 
 // ── Wishlist, destinos, ofertas ───────────────────────

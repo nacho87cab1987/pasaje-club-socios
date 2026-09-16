@@ -9,6 +9,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { viajes as apiViajes, type Viaje } from '../api/endpoints';
 import { fmtPuntos } from '../lib/tiers';
 import EstadoCuenta from '../components/EstadoCuenta';
+import MapaYExcursiones from '../components/MapaYExcursiones';
 import { CONFIG } from '../config';
 import { crearTema } from '../theme';
 
@@ -234,6 +235,9 @@ export default function ViajeDetalleScreen({ route, navigation }: any) {
             </View>
           </>
         )}
+
+        {/* ── Mapa y qué hacer en el destino ── */}
+        <MapaYExcursiones destino={viaje.destino} futuro={futuro} />
 
         {/* ── Acompañantes ── */}
         {companeros.length > 0 && (
