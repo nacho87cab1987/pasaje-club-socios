@@ -1,25 +1,44 @@
 {
   "expo": {
-    "name": "pasaje-club-socios",
+    "name": "Pasaje Club",
     "slug": "pasaje-club-socios",
-    "version": "1.0.0",
+    "scheme": "pasajeclub",
+    "version": "2.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "backgroundColor": "#072D40",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-      "supportsTablet": true
+      "bundleIdentifier": "com.pasajeclub.app",
+      "supportsTablet": false,
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Para sacar la foto de tu documentación y comprobantes de pago.",
+        "NSPhotoLibraryUsageDescription": "Para elegir tu foto de perfil y adjuntar comprobantes.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
-      },
-      "predictiveBackGestureEnabled": false
+      "package": "com.pasajeclub.app",
+      "versionCode": 20,
+      "permissions": [
+        "CAMERA",
+        "READ_MEDIA_IMAGES",
+        "POST_NOTIFICATIONS"
+      ]
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    }
+    "plugins": [
+      "expo-secure-store",
+      "expo-notifications",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Para escanear y adjuntar documentación."
+        }
+      ],
+      "expo-font"
+    ]
   }
 }

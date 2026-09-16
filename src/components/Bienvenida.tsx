@@ -1,0 +1,179 @@
+import React, { useEffect, useRef } from 'react';
+import { Animated, Easing, StyleSheet, Dimensions, View } from 'react-native';
+import { crearTema } from '../theme';
+
+const t = crearTema();
+
+// ============================================================================
+// Portado del Hub, misma animación y mismos tiempos.
+//
+//   'crecer'   El logo aparece creciendo desde el centro y se va hacia
+//              adelante, como si entraras a la app. La más sobria.
+//
+//   'cortina'  El fondo navy se abre hacia arriba y deja ver la app, con el
+//              logo subiendo. La que mejor conecta con lo que viene después.
+//
+//   'trazo'    El logo se dibuja de izquierda a derecha, como si lo pintaran.
+//              La más llamativa; se nota que hay una animación.
+//
+//   'pulso'    El isotipo late una vez y el logo completo aparece alrededor.
+//              La más corta: no hace esperar.
+// ============================================================================
+const ANIMACION: 'crecer' | 'cortina' | 'trazo' | 'pulso' = 'trazo';
+
+/**
+ * El navy exacto del fondo del PNG del logo.
+ *
+ * La tapa del trazo tiene que ser de ESTE color, no del navy de la marca:
+ * si difieren aunque sea un tono, al correrse se ve el borde moviéndose.
+ * En el Hub esto es C.navyLogo.
+ */
+const NAVY_LOGO = t.color.navy;
+
+// Alto máximo del logo. Se usa junto con resizeMode 'contain' en vez de
+// forzar una proporción: así la imagen entra en la caja sea cual sea su
+// forma, y no hay que saber sus medidas de antemano.
+const ALTO = 84;
+
+export default function Bienvenida({ onTerminar }: { onTerminar?: () => void }) {
+  const v = {
+    opacidad: useRef(new Animated.Value(0)).current,
+    escala:   useRef(new Animated.Value(1)).current,
+    subir:    useRef(new Animated.Value(0)).current,
+    ancho:    useRef(new Animated.Value(0)).current,
+    salida:   useRef(new Animated.Value(1)).current,
+    fondoY:   useRef(new Animated.Value(0)).current,
+  };
+
+  useEffect(() => {
+    const listo = ({ finished }: { finished: boolean }) => {
+      if (finished && onTerminar) onTerminar();
+    };
+
+    if (ANIMACION === 'crecer') {
+      v.escala.setValue(0.86);
+      Animated.sequence([
+        Animated.parallel([
+          Animated.timing(v.opacidad, { toValue: 1, duration: 360, useNativeDriver: true,
+            easing: Easing.out(Easing.quad) }),
+          Animated.spring(v.escala, { toValue: 1, useNativeDriver: true, friction: 7, tension: 50 }),
+        ]),
+        Animated.delay(380),
+        Animated.parallel([
+          // Crece un poco más al irse: da sensación de entrar, no de cerrar.
+          Animated.timing(v.escala, { toValue: 1.18, duration: 380, useNativeDriver: true,
+            easing: Easing.in(Easing.quad) }),
+          Animated.timing(v.salida, { toValue: 0, duration: 380, useNativeDriver: true }),
+        ]),
+      ]).start(listo);
+
+    } else if (ANIMACION === 'cortina') {
+      const alto = Dimensions.get('window').height;
+      Animated.sequence([
+        Animated.parallel([
+          Animated.timing(v.opacidad, { toValue: 1, duration: 340, useNativeDriver: true }),
+          Animated.timing(v.subir, { toValue: 1, duration: 520, useNativeDriver: true,
+            easing: Easing.out(Easing.cubic) }),
+        ]),
+        Animated.delay(300),
+        // El fondo se va hacia arriba y descubre la app que ya está abajo.
+        Animated.timing(v.fondoY, { toValue: -alto, duration: 480, useNativeDriver: true,
+          easing: Easing.in(Easing.cubic) }),
+      ]).start(listo);
+
+    } else if (ANIMACION === 'trazo') {
+      // El barrido se hace corriendo una TAPA del color del fondo, no
+      // animando el ancho.
+      //
+      // Animar un ancho obliga a usar el motor de JavaScript, y al abrir la
+      // app ese hilo está ocupado cargando: la animación se traba a la mitad
+      // y queda el logo cortado. Mover una tapa es un desplazamiento, y eso
+      // corre en el motor nativo, que no se entera de lo que hace la app.
+      v.opacidad.setValue(1);
+      Animated.sequence([
+        Animated.timing(v.ancho, { toValue: 1, duration: 620, useNativeDriver: true,
+          easing: Easing.inOut(Easing.cubic) }),
+        Animated.delay(260),
+        Animated.timing(v.salida, { toValue: 0, duration: 340, useNativeDriver: true }),
+      ]).start(listo);
+
+    } else {
+      v.escala.setValue(0.7);
+      Animated.sequence([
+        Animated.parallel([
+          Animated.timing(v.opacidad, { toValue: 1, duration: 240, useNativeDriver: true }),
+          Animated.spring(v.escala, { toValue: 1, useNativeDriver: true, friction: 4.5, tension: 90 }),
+        ]),
+        Animated.delay(280),
+        Animated.timing(v.salida, { toValue: 0, duration: 280, useNativeDriver: true }),
+      ]).start(listo);
+    }
+  }, []);
+
+  // Más contenido que antes: a 230 ocupaba más de la mitad del ancho y
+  // quedaba pesado.
+  const ancho = Math.min(150, Dimensions.get('window').width * 0.4);
+
+  const desplazamiento = v.subir.interpolate({
+    inputRange: [0, 1], outputRange: [26, 0],
+  });
+
+  // La tapa arranca cubriendo el logo y se corre hacia la derecha.
+  const tapa = v.ancho.interpolate({
+    inputRange: [0, 1], outputRange: [0, ancho + 4],
+  });
+
+  const logo = (
+    <Animated.Image
+      source={require('../../assets/logo.png')}
+      resizeMode="contain"
+      style={{ width: ancho, height: ALTO }}
+    />
+  );
+
+  return (
+    <Animated.View
+      style={[s.capa, {
+        opacity: ANIMACION === 'cortina' ? 1 : v.salida,
+        transform: [{ translateY: v.fondoY }],
+      }]}
+      pointerEvents="none"
+    >
+      {ANIMACION === 'trazo' ? (
+        <View style={{ width: ancho }}>
+          {logo}
+          <Animated.View
+            style={[s.tapa, { transform: [{ translateX: tapa }] }]}
+            pointerEvents="none"
+          />
+        </View>
+      ) : (
+        <Animated.View style={{
+          opacity: v.opacidad,
+          transform: [{ scale: v.escala }, { translateY: desplazamiento }],
+        }}
+        >
+          {logo}
+        </Animated.View>
+      )}
+    </Animated.View>
+  );
+}
+
+const s = StyleSheet.create({
+  // Del mismo color que el fondo: al correrse, va dejando ver el logo.
+  tapa: {
+    position: 'absolute',
+    top: -6, bottom: -6, left: -3, right: -3,
+    backgroundColor: NAVY_LOGO,
+  },
+  capa: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: NAVY_LOGO,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 999,
+    elevation: 999,
+  },
+});
