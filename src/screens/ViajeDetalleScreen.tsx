@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { viajes as apiViajes, type Viaje } from '../api/endpoints';
 import { fmtPuntos } from '../lib/tiers';
+import EstadoCuenta from '../components/EstadoCuenta';
 import { CONFIG } from '../config';
 import { crearTema } from '../theme';
 
@@ -152,6 +153,11 @@ export default function ViajeDetalleScreen({ route, navigation }: any) {
             <Text style={s.codigo}>Expediente {viaje.expediente_codigo}</Text>
           )}
         </View>
+
+        {/* ── Estado de cuenta ── */}
+        {/* Va antes que todo lo demás: es lo que el socio viene a ver
+            entre viaje y viaje. */}
+        <EstadoCuenta viajeId={Number(viaje.id)} />
 
         {/* ── Documentación ── */}
         <Text style={s.seccion}>Tu documentación</Text>
