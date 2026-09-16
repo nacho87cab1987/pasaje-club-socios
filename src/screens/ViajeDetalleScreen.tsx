@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator,
-  Alert, Linking,
+  Alert, Linking, ImageBackground,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { viajes as apiViajes, type Viaje } from '../api/endpoints';
+import { viajes as apiViajes, destinos as apiDestinos, type Viaje } from '../api/endpoints';
 import { fmtPuntos } from '../lib/tiers';
 import EstadoCuenta from '../components/EstadoCuenta';
 import MapaDestino from '../components/MapaDestino';
@@ -45,6 +46,7 @@ export default function ViajeDetalleScreen({ route, navigation }: any) {
   const [viaje, setViaje] = useState<Viaje | null>(viajeInicial ?? null);
   const [cargando, setCargando] = useState(!viajeInicial);
   const [pestana, setPestana] = useState<Pestana>('estado');
+  const [foto, setFoto] = useState<string | null>(null);
 
   const cargar = useCallback(async () => {
     const id = viaje?.id ?? viajeId;
@@ -62,6 +64,15 @@ export default function ViajeDetalleScreen({ route, navigation }: any) {
   }, [viaje, viajeId]);
 
   useEffect(() => { cargar(); }, []);
+
+  // La foto del destino, para la portada. Si no hay, queda el navy
+  // de siempre: nunca se muestra un hueco.
+  useEffect(() => {
+    if (!viaje?.destino) return;
+    apiDestinos.foto(viaje.destino)
+      .then((d: any) => setFoto(d?.foto ?? null))
+      .catch(() => {});
+  }, [viaje?.destino]);
 
   if (cargando) {
     return (
@@ -93,33 +104,16 @@ export default function ViajeDetalleScreen({ route, navigation }: any) {
 
   return (
     <SafeAreaView style={s.fondo} edges={['top']}>
-      {/* ── Cabecera fija: siempre se ve a qué viaje pertenece
-             lo que estás mirando ── */}
-      <View style={s.hero}>
-        <Pressable onPress={() => navigation.goBack()} hitSlop={12} style={s.volver}>
-          <Ionicons name="chevron-back" size={24} color="#fff" />
-        </Pressable>
-
-        <Text style={s.destino} numberOfLines={1}>
-          {viaje.destino || 'Tu viaje'}
-        </Text>
-        <Text style={s.fecha}>{fmtFecha(viaje.fecha)}</Text>
-
-        <View style={s.heroPie}>
-          {futuro && (
-            <View style={s.pastilla}>
-              <Text style={s.pastillaTxt}>
-                {dias === 0 ? 'Salís hoy'
-                  : dias === 1 ? 'Falta 1 día'
-                  : `Faltan ${dias} días`}
-              </Text>
-            </View>
-          )}
-          {Number(viaje.puntos) > 0 && (
-            <Text style={s.puntos}>+{fmtPuntos(Number(viaje.puntos))} puntos</Text>
-          )}
-        </View>
-      </View>
+      {/* ── Portada: foto del destino con degradé, o navy si no hay ── */}
+      <Portada
+        foto={foto}
+        destino={viaje.destino}
+        fecha={fmtFecha(viaje.fecha)}
+        dias={dias}
+        futuro={futuro}
+        puntos={Number(viaje.puntos)}
+        onVolver={() => navigation.goBack()}
+      />
 
       {/* ── Pestañas ── */}
       <View style={s.tabs}>
@@ -345,6 +339,72 @@ function PestanaEstado({ viaje }: { viaje: Viaje }) {
   );
 }
 
+/**
+ * Portada del viaje.
+ *
+ * Con foto del destino y un degradé que va de transparente a navy,
+ * para que el texto blanco se lea sin importar cómo sea la imagen.
+ * Sin foto, el mismo navy de siempre: nunca queda un hueco gris.
+ */
+function Portada({
+  foto, destino, fecha, dias, futuro, puntos, onVolver,
+}: {
+  foto: string | null;
+  destino?: string | null;
+  fecha: string;
+  dias: number;
+  futuro: boolean;
+  puntos: number;
+  onVolver: () => void;
+}) {
+  const contenido = (
+    <>
+      <Pressable onPress={onVolver} hitSlop={12} style={s.volver}>
+        <Ionicons name="chevron-back" size={24} color="#fff" />
+      </Pressable>
+
+      <View style={s.heroTexto}>
+        <Text style={s.destino} numberOfLines={2}>
+          {destino || 'Tu viaje'}
+        </Text>
+        <Text style={s.fecha}>{fecha}</Text>
+
+        <View style={s.heroPie}>
+          {futuro && (
+            <View style={s.pastilla}>
+              <Text style={s.pastillaTxt}>
+                {dias === 0 ? 'Salís hoy'
+                  : dias === 1 ? 'Falta 1 día'
+                  : `Faltan ${dias} días`}
+              </Text>
+            </View>
+          )}
+          {puntos > 0 && (
+            <Text style={s.puntos}>+{fmtPuntos(puntos)} puntos</Text>
+          )}
+        </View>
+      </View>
+    </>
+  );
+
+  if (!foto) {
+    return <View style={[s.hero, s.heroSinFoto]}>{contenido}</View>;
+  }
+
+  return (
+    <ImageBackground source={{ uri: foto }} style={s.hero} resizeMode="cover">
+      {/* Tres paradas en vez de dos: la del medio evita que el
+          degradé tape la foto demasiado arriba. */}
+      <LinearGradient
+        colors={['rgba(7,45,64,0.35)', 'rgba(7,45,64,0.72)', 'rgba(7,45,64,0.96)']}
+        locations={[0, 0.5, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+      {contenido}
+    </ImageBackground>
+  );
+}
+
 function FilaDoc({
   icono, titulo, detalle, borde, cargando, onPress,
 }: {
@@ -374,14 +434,29 @@ const s = StyleSheet.create({
   centro: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: t.color.fondo },
 
   hero: {
-    backgroundColor: t.color.navy,
+    minHeight: 190,
     paddingHorizontal: t.espacio.xl,
     paddingTop: t.espacio.sm,
     paddingBottom: t.espacio.lg,
+    justifyContent: 'space-between',
   },
-  volver: { marginBottom: t.espacio.md, marginLeft: -6, alignSelf: 'flex-start' },
-  destino: { ...t.texto.titulo, color: '#fff' },
-  fecha: { ...t.texto.chico, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
+  heroSinFoto: { backgroundColor: t.color.navy, minHeight: 0 },
+  heroTexto: { marginTop: t.espacio.lg },
+  volver: { marginLeft: -6, alignSelf: 'flex-start' },
+  destino: {
+    ...t.texto.titulo, color: '#fff',
+    // Sobre foto, la sombra es lo que hace que el texto se lea
+    // aunque la imagen tenga una zona clara justo detrás.
+    textShadowColor: 'rgba(0,0,0,0.45)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 6,
+  },
+  fecha: {
+    ...t.texto.chico, color: 'rgba(255,255,255,0.85)', marginTop: 2,
+    textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 5,
+  },
   heroPie: {
     flexDirection: 'row', alignItems: 'center',
     gap: t.espacio.md, marginTop: t.espacio.md,

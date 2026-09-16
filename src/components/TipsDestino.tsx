@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { grupales as apiGrupales } from '../api/endpoints';
+import { destinos as apiDestinos } from '../api/endpoints';
 import { crearTema } from '../theme';
 
 const t = crearTema();
@@ -22,7 +22,7 @@ export default function TipsDestino({ destino }: { destino?: string | null }) {
   const cargar = useCallback(async () => {
     if (!destino) { setCargando(false); return; }
     try {
-      const d: any = await apiGrupales.infoDestino(destino);
+      const d: any = await apiDestinos.info(destino);
       setInfo(d?.info ?? null);
     } catch {
       setInfo(null);

@@ -55,6 +55,8 @@ export const viajes = {
   datosViajero: () => api('viajero_datos.php'),
   lotesPuntos: () => api('puntos_vencimiento.php?action=mis_lotes'),
   configPuntos: () => api('config_puntos.php'),
+  /** Destinos del socio con coordenadas, para el mapa del inicio. */
+  misDestinos: () => api('socios_mis_destinos.php'),
   subirDoc: (tipo: 'pasaporte' | 'cobertura', form: FormData) =>
     apiUpload(`upload_pasaporte.php?tipo=${tipo}`, form),
   /** Documentación ya cargada en el expediente por la vendedora. */
@@ -79,8 +81,14 @@ export const grupales = {
   misGrupos: () => api('grupos.php'),
   fotos: (grupalId: number) => api(`grupal_fotos.php?grupal_id=${grupalId}`),
   excursiones: (grupalId: number) => api(`excursiones.php?grupal_id=${grupalId}`),
+};
+
+// ── Todo lo que es del destino en sí ──────────────────
+// Junto en un solo objeto: son cosas del lugar, no del viaje ni
+// de las grupales, y tenerlas mezcladas ya causó una confusión.
+export const destinos = {
   /** Excursiones que la agencia cargó para un destino. */
-  excursionesDestino: (destino: string) =>
+  excursiones: (destino: string) =>
     api(`excursiones.php?destino=${encodeURIComponent(destino)}`),
   /**
    * Resuelve si Civitatis tiene página para ese destino.
@@ -90,11 +98,14 @@ export const grupales = {
   civitatis: (destino: string) =>
     api(`socios_civitatis.php?destino=${encodeURIComponent(destino)}`),
   /** Guía del destino: imperdibles, tips, gastronomía. */
-  infoDestino: (destino: string) =>
+  info: (destino: string) =>
     api(`socios_destino_info.php?destino=${encodeURIComponent(destino)}`),
+  /** Foto de portada del destino. */
+  foto: (destino: string) =>
+    api(`socios_destino_foto.php?destino=${encodeURIComponent(destino)}`),
 };
 
-// ── Wishlist, destinos, ofertas ───────────────────────
+// ── Wishlist, destinos guardados, ofertas ─────────────
 export const catalogo = {
   wishlist: () => api('wishlist.php'),
   /** El backend guarda la lista completa, no de a un ítem. */

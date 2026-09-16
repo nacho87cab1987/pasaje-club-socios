@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
-import { grupales as apiGrupales } from '../api/endpoints';
+import { destinos as apiDestinos } from '../api/endpoints';
 import { crearTema } from '../theme';
 
 const t = crearTema();
@@ -26,11 +26,11 @@ export default function ExcursionesDestino({
     if (!destino) { setCargando(false); return; }
 
     const [propias, civ] = await Promise.allSettled([
-      apiGrupales.excursionesDestino(destino),
+      apiDestinos.excursiones(destino),
       // Civitatis solo tiene página para los destinos de su catálogo.
       // Si no la tiene, no se muestra nada: mejor eso que ofrecerle
       // excursiones de Roma a alguien que viaja a Ezeiza.
-      apiGrupales.civitatis(destino),
+      apiDestinos.civitatis(destino),
     ]);
 
     if (propias.status === 'fulfilled') {
