@@ -1,18 +1,20 @@
 // ══════════════════════════════════════════════════════
 // PUSH
 //
-// Usa el token NATIVO del dispositivo (APNs en iOS, FCM en
-// Android), no el de Expo, porque el enviador PHP que ya
-// funciona en el Hub habla directo con APNs y FCM V1.
+// Usa el token de EXPO (ExponentPushToken[...]), no el nativo
+// de APNs, porque el enviador del servidor manda todo a través
+// del servicio de Expo: un POST y Expo se encarga de APNs y de
+// FCM. Es el mismo camino que usa el Hub.
 //
 // OJO: en Expo Go esto no funciona desde el SDK 53. Hace falta
-// un development build para probarlo de verdad.
+// un build de verdad para probarlo.
 // ══════════════════════════════════════════════════════
 
 import { useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
+import Constants from 'expo-constants';
 import { avisos } from '../api/endpoints';
 
 /** Con la app abierta: mostrar igual la notificación. */
@@ -65,8 +67,15 @@ export async function registrarPush(): Promise<string | null> {
     }
     if (status !== 'granted') return null;
 
-    // Token nativo: APNs en iOS, FCM en Android.
-    const { data: token } = await Notifications.getDevicePushTokenAsync();
+    // Desde el SDK 49 hay que pasarle el projectId a mano: sin eso
+    // falla en el build de producción aunque ande en desarrollo.
+    const projectId =
+      Constants.expoConfig?.extra?.eas?.projectId ??
+      (Constants as any)?.easConfig?.projectId;
+
+    if (!projectId) return null;
+
+    const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });
     if (!token) return null;
 
     await avisos.registrarToken(String(token), Platform.OS === 'ios' ? 'ios' : 'android');
