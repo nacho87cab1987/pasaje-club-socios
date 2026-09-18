@@ -12,8 +12,8 @@
     ],
     "ios": {
       "bundleIdentifier": "com.pasajeclub.app",
-      "supportsTablet": false,
-      "buildNumber": "1",
+      "supportsTablet": true,
+      "buildNumber": "12",
       "infoPlist": {
         "NSCameraUsageDescription": "Para sacar la foto de tu documentación y comprobantes de pago.",
         "NSPhotoLibraryUsageDescription": "Para elegir tu foto de perfil y adjuntar comprobantes.",
@@ -27,18 +27,44 @@
         "CAMERA",
         "READ_MEDIA_IMAGES",
         "POST_NOTIFICATIONS"
-      ]
+      ],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icono-fg.png",
+        "backgroundColor": "#072D40"
+      }
     },
     "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/icono-fg.png",
+          "imageWidth": 160,
+          "resizeMode": "contain",
+          "backgroundColor": "#072D40"
+        }
+      ],
       "expo-secure-store",
       "expo-notifications",
+      "expo-updates",
       [
         "expo-camera",
         {
           "cameraPermission": "Para escanear y adjuntar documentación."
         }
-      ],
-      "expo-font"
-    ]
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "279b20c9-8894-4fe4-abac-349b5daeff06"
+      }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/279b20c9-8894-4fe4-abac-349b5daeff06",
+      "fallbackToCacheTimeout": 0
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "icon": "./assets/icon.png"
   }
 }

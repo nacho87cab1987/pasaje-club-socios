@@ -26,9 +26,11 @@ const ANIMACION: 'crecer' | 'cortina' | 'trazo' | 'pulso' = 'trazo';
  *
  * La tapa del trazo tiene que ser de ESTE color, no del navy de la marca:
  * si difieren aunque sea un tono, al correrse se ve el borde moviéndose.
- * En el Hub esto es C.navyLogo.
+ *
+ * Verificado sobre el PNG del logo: el fondo es #072E40, un tono más
+ * claro en verde que el navy de la paleta (#072D40).
  */
-const NAVY_LOGO = t.color.navy;
+const NAVY_LOGO = '#072E40';
 
 // Alto máximo del logo. Se usa junto con resizeMode 'contain' en vez de
 // forzar una proporción: así la imagen entra en la caja sea cual sea su

@@ -19,6 +19,7 @@ export default function ExcursionesDestino({
 }) {
   const [excursiones, setExcursiones] = useState<any[]>([]);
   const [civUrl, setCivUrl] = useState<string | null>(null);
+  const [civFallo, setCivFallo] = useState<string | null>(null);
   const [cargando, setCargando] = useState(true);
 
   const cargar = useCallback(async () => {
@@ -100,18 +101,47 @@ export default function ExcursionesDestino({
 
           {/* Se carga sola, igual que el mapa: si hay que tocar un
               botón para verla, casi nadie la ve. */}
-          <View style={s.civCaja}>
-            <WebView
-              source={{ uri: civUrl }}
-              style={s.civWeb}
-              startInLoadingState
-              renderLoading={() => (
-                <View style={s.centro}>
-                  <ActivityIndicator color={CIV_ROSA} />
-                </View>
-              )}
-            />
-          </View>
+          {civFallo ? (
+            <Pressable
+              style={s.civError}
+              onPress={() => Linking.openURL(civUrl).catch(() => {})}
+            >
+              <Ionicons name="open-outline" size={22} color={CIV_ROSA} />
+              <Text style={s.civErrorTit}>Ver las actividades en Civitatis</Text>
+              <Text style={s.civErrorTxt}>{civFallo}</Text>
+            </Pressable>
+          ) : (
+            <View style={s.civCaja}>
+              <WebView
+                source={{ uri: civUrl }}
+                style={s.civWeb}
+                startInLoadingState
+                // Sin un user agent de navegador, algunos sitios
+                // devuelven una página vacía a las WebView.
+                userAgent={
+                  'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) ' +
+                  'AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile Safari/604.1'
+                }
+                javaScriptEnabled
+                domStorageEnabled
+                thirdPartyCookiesEnabled
+                sharedCookiesEnabled
+                allowsInlineMediaPlayback
+                onError={(e) =>
+                  setCivFallo(e.nativeEvent?.description || 'No pudimos cargarla acá')
+                }
+                onHttpError={(e) => {
+                  const c = e.nativeEvent?.statusCode;
+                  if (c && c >= 400) setCivFallo(`La página respondió ${c}`);
+                }}
+                renderLoading={() => (
+                  <View style={s.centro}>
+                    <ActivityIndicator color={CIV_ROSA} />
+                  </View>
+                )}
+              />
+            </View>
+          )}
 
           <Pressable
             style={s.civLink}
@@ -164,6 +194,15 @@ const s = StyleSheet.create({
     marginBottom: t.espacio.md,
   },
   civAvisoTxt: { ...t.texto.chicoFuerte, color: CIV_ROSA },
+  civError: {
+    alignItems: 'center', gap: t.espacio.sm,
+    backgroundColor: t.color.superficie,
+    borderRadius: t.radio.medio,
+    paddingVertical: t.espacio.xl,
+    paddingHorizontal: t.espacio.lg,
+  },
+  civErrorTit: { ...t.texto.cuerpoFuerte, color: CIV_ROSA },
+  civErrorTxt: { ...t.texto.pie, color: t.color.textoSuave, textAlign: 'center' },
   civCaja: {
     height: 560,
     backgroundColor: t.color.superficie,
