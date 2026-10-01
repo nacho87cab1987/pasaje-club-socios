@@ -128,6 +128,9 @@ export const avisos = {
   listar: () => api('notificaciones.php'),
   registrarToken: (token: string, plataforma: 'ios' | 'android') =>
     api('notif_token.php', { body: { token, plataforma } }),
+  /** Marca un aviso como leído. Sin id, marca todos. */
+  marcarLeida: (id?: number) =>
+    api(`notificaciones.php${id ? `?id=${id}` : ''}`, { method: 'PUT', body: {} }),
 };
 
 // ── Perfil y referidos ────────────────────────────────

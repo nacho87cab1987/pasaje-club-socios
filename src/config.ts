@@ -16,6 +16,7 @@ export const CONFIG = {
   API: `${HOST}/socios/api`,
   FOTOS: `${HOST}/socios/fotos/`,
   IMG_BENEFICIOS: `${HOST}/socios/imagenes_beneficios/`,
+  IMG_AVISOS: `${HOST}/socios/imagenes_avisos/`,
 
   /** Timeout de red en ms. Ferozo a veces tarda en despertar. */
   TIMEOUT: 20000,

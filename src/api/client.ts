@@ -31,7 +31,7 @@ export class ApiError extends Error {
 }
 
 type Opts = {
-  method?: 'GET' | 'POST';
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
   body?: unknown;
   /** FormData para subidas: no se serializa ni lleva Content-Type. */
   form?: FormData;

@@ -1,10 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  View, Text, StyleSheet, FlatList, ActivityIndicator, RefreshControl,
+  View, Text, StyleSheet, FlatList, ActivityIndicator, RefreshControl, Pressable, Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { avisos } from '../api/endpoints';
 import Encabezado from '../components/Encabezado';
+import AvisoNotificaciones from '../components/AvisoNotificaciones';
+import { CONFIG } from '../config';
 import { crearTema } from '../theme';
 
 const t = crearTema();
@@ -66,6 +68,7 @@ export default function AvisosScreen({ navigation }: any) {
         data={lista}
         keyExtractor={(n, i) => String(n.id ?? i)}
         contentContainerStyle={s.contenido}
+        ListHeaderComponent={<AvisoNotificaciones />}
         refreshControl={
           <RefreshControl
             refreshing={refrescando}
@@ -74,23 +77,51 @@ export default function AvisosScreen({ navigation }: any) {
           />
         }
         renderItem={({ item }) => {
-          const sinLeer = item.leido === 0 || item.leido === '0' || item.leido === false;
+          // La columna es `leida`, no `leido`. Preguntando por el
+          // nombre equivocado daba siempre undefined y ningún aviso
+          // se marcaba como nuevo.
+          const sinLeer = Number(item.leida ?? 0) === 0;
           return (
-            <View style={[s.tarjeta, sinLeer && s.sinLeer]}>
-              <View style={s.icono}>
-                <Ionicons
-                  name={ICONO[String(item.tipo)] ?? 'notifications'}
-                  size={18}
-                  color={t.color.teal}
+            <Pressable
+              style={[s.tarjeta, sinLeer && s.sinLeer]}
+              onPress={() => {
+                navigation.navigate('AvisoDetalle', { aviso: item });
+                // Se marca acá también para que la bolita se apague
+                // al toque, sin esperar a volver de la pantalla.
+                if (sinLeer) {
+                  setLista((l) =>
+                    l.map((x) => (x.id === item.id ? { ...x, leida: 1 } : x)),
+                  );
+                }
+              }}
+            >
+              {/* Con imagen se muestra la miniatura; sin ella, el
+                  ícono del tipo. */}
+              {item.imagen ? (
+                <Image
+                  source={{ uri: CONFIG.IMG_AVISOS + item.imagen }}
+                  style={s.miniatura}
                 />
-              </View>
+              ) : (
+                <View style={s.icono}>
+                  <Ionicons
+                    name={ICONO[String(item.tipo)] ?? 'notifications'}
+                    size={18}
+                    color={t.color.teal}
+                  />
+                </View>
+              )}
               <View style={s.texto}>
                 <Text style={s.titulo}>{item.titulo || 'Aviso'}</Text>
-                {item.mensaje ? <Text style={s.mensaje}>{item.mensaje}</Text> : null}
+                {item.mensaje ? (
+                  <Text style={s.mensaje} numberOfLines={2}>{item.mensaje}</Text>
+                ) : null}
                 <Text style={s.cuando}>{cuandoFue(item.creado_el)}</Text>
               </View>
-              {sinLeer && <View style={s.bolita} />}
-            </View>
+              {sinLeer
+                ? <View style={s.bolita} />
+                : <Ionicons name="chevron-forward" size={16} color={t.color.borde} />}
+            </Pressable>
           );
         }}
         ListEmptyComponent={
@@ -119,6 +150,10 @@ const s = StyleSheet.create({
     marginBottom: t.espacio.md,
   },
   sinLeer: { borderLeftWidth: 3, borderLeftColor: t.color.teal },
+  miniatura: {
+    width: 44, height: 44, borderRadius: t.radio.chico,
+    backgroundColor: t.color.fondo,
+  },
   icono: {
     width: 34, height: 34, borderRadius: 17,
     backgroundColor: 'rgba(17,188,179,0.12)',

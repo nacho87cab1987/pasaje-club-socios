@@ -6,6 +6,7 @@ import {
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import { Linking } from 'react-native';
 
 import HomeScreen from '../screens/HomeScreen';
 import ViajesScreen from '../screens/ViajesScreen';
@@ -84,6 +85,13 @@ export default function RootTabs() {
       pendiente.current = destino;
       return;
     }
+    // Un link en el aviso gana: es lo que la persona esperaba al
+    // tocar la notificación.
+    if (destino.url) {
+      Linking.openURL(destino.url).catch(() => {});
+      return;
+    }
+
     switch (destino.tipo) {
       case 'viaje':
         navRef.navigate('Viajes', {

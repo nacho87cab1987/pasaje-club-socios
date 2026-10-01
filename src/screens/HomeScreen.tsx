@@ -9,6 +9,7 @@ import { useSession } from '../store/SessionContext';
 import { viajes as apiViajes, type Viaje } from '../api/endpoints';
 import TarjetaPuntos from '../components/TarjetaPuntos';
 import MapaViajes from '../components/MapaViajes';
+import AvisoNotificaciones from '../components/AvisoNotificaciones';
 import { crearTema } from '../theme';
 
 const t = crearTema();
@@ -98,6 +99,8 @@ export default function HomeScreen({ navigation }: any) {
             </Pressable>
           </View>
         )}
+
+        <AvisoNotificaciones compacto />
 
         <View style={s.puntosCaja}>
           <TarjetaPuntos puntos={puntos} />

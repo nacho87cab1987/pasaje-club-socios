@@ -9,6 +9,7 @@ import GrupalesScreen from '../screens/GrupalesScreen';
 import ChatScreen from '../screens/ChatScreen';
 import ReferidosScreen from '../screens/ReferidosScreen';
 import AvisosScreen from '../screens/AvisosScreen';
+import AvisoDetalleScreen from '../screens/AvisoDetalleScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -24,6 +25,7 @@ export default function PerfilStack() {
       <Stack.Screen name="Chat" component={ChatScreen} />
       <Stack.Screen name="Referidos" component={ReferidosScreen} />
       <Stack.Screen name="Avisos" component={AvisosScreen} />
+      <Stack.Screen name="AvisoDetalle" component={AvisoDetalleScreen} />
     </Stack.Navigator>
   );
 }

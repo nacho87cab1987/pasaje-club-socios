@@ -11,7 +11,7 @@
 // ══════════════════════════════════════════════════════
 
 import { useEffect, useRef } from 'react';
-import { Platform } from 'react-native';
+import { Platform, Linking } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
@@ -35,17 +35,48 @@ Notifications.setNotificationHandler({
 export type DestinoPush = {
   tipo: string;
   id?: number;
+  /** Si el aviso trae un link, se abre en vez de navegar adentro. */
+  url?: string;
 };
 
 export function leerDestino(
   respuesta: Notifications.NotificationResponse | null,
 ): DestinoPush | null {
   const data = respuesta?.notification?.request?.content?.data as any;
-  if (!data?.tipo) return null;
-  return { tipo: String(data.tipo), id: data.id ? Number(data.id) : undefined };
+  if (!data?.tipo && !data?.url) return null;
+  return {
+    tipo: String(data.tipo ?? 'aviso'),
+    id: data.id ? Number(data.id) : undefined,
+    url: data.url ? String(data.url) : undefined,
+  };
 }
 
-/** Pide permiso y devuelve el token nativo, o null si no se puede. */
+export type EstadoPush = 'concedido' | 'denegado' | 'sin_dispositivo' | 'error';
+
+/**
+ * En qué estado están las notificaciones, sin pedir nada.
+ *
+ * Hace falta porque iOS solo muestra el diálogo una vez: si la
+ * persona dijo que no (o lo dijo en la app vieja de Capacitor,
+ * que comparte el bundle), no se lo vuelve a preguntar nunca y
+ * queda sin avisos sin enterarse.
+ */
+export async function estadoPush(): Promise<EstadoPush> {
+  if (!Device.isDevice) return 'sin_dispositivo';
+  try {
+    const { status } = await Notifications.getPermissionsAsync();
+    return status === 'granted' ? 'concedido' : 'denegado';
+  } catch {
+    return 'error';
+  }
+}
+
+/** Abre los ajustes del sistema, que es el único lugar donde se puede reactivar. */
+export function abrirAjustes() {
+  Linking.openSettings().catch(() => {});
+}
+
+/** Pide permiso y devuelve el token, o null si no se puede. */
 export async function registrarPush(): Promise<string | null> {
   // En emulador no hay push real.
   if (!Device.isDevice) return null;
