@@ -37,6 +37,8 @@ export type DestinoPush = {
   id?: number;
   /** Si el aviso trae un link, se abre en vez de navegar adentro. */
   url?: string;
+  slug?: string;
+
 };
 
 export function leerDestino(
@@ -48,6 +50,7 @@ export function leerDestino(
     tipo: String(data.tipo ?? 'aviso'),
     id: data.id ? Number(data.id) : undefined,
     url: data.url ? String(data.url) : undefined,
+    slug: data.slug ? String(data.slug) : undefined,
   };
 }
 
