@@ -11,6 +11,7 @@ import { Linking } from 'react-native';
 import HomeScreen from '../screens/HomeScreen';
 import ViajesScreen from '../screens/ViajesScreen';
 import ViajeDetalleScreen from '../screens/ViajeDetalleScreen';
+import CatalogoDetalleScreen from '../screens/CatalogoDetalleScreen';
 import TarjetaScreen from '../screens/TarjetaScreen';
 import BeneficiosScreen from '../screens/BeneficiosScreen';
 import PerfilStack from './PerfilStack';
@@ -32,12 +33,14 @@ const ICONOS: Record<string, [keyof typeof Ionicons.glyphMap, keyof typeof Ionic
   Perfil: ['person', 'person-outline'],
 };
 
-// Mis viajes tiene su propio stack: lista → detalle
+// Mis viajes tiene su propio stack: la lista, el detalle de un
+// viaje propio y el detalle de uno del catálogo.
 function ViajesStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="ViajesLista" component={ViajesScreen} />
       <Stack.Screen name="ViajeDetalle" component={ViajeDetalleScreen} />
+      <Stack.Screen name="CatalogoDetalle" component={CatalogoDetalleScreen} />
     </Stack.Navigator>
   );
 }
@@ -101,6 +104,13 @@ export default function RootTabs() {
         break;
       case 'beneficio':
         navRef.navigate('Beneficios');
+        break;
+      case 'catalogo':
+        // Con slug abre ese destino; sin él, la lista.
+        navRef.navigate('Viajes', {
+          screen: destino.slug ? 'CatalogoDetalle' : 'ViajesLista',
+          params: destino.slug ? { slug: destino.slug } : undefined,
+        });
         break;
       case 'chat':
         navRef.navigate('Perfil', { screen: 'Chat' });

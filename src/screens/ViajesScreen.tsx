@@ -5,6 +5,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { viajes as apiViajes, type Viaje } from '../api/endpoints';
 import { useSession } from '../store/SessionContext';
+import CatalogoLista from '../components/CatalogoLista';
 import { fmtPuntos } from '../lib/tiers';
 import { crearTema } from '../theme';
 
@@ -25,6 +26,7 @@ export default function ViajesScreen({ navigation }: any) {
   const [cargando, setCargando] = useState(true);
   const [refrescando, setRefrescando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pestana, setPestana] = useState<'mios' | 'catalogo'>('mios');
 
   const cargar = useCallback(async () => {
     setError(null);
@@ -44,6 +46,15 @@ export default function ViajesScreen({ navigation }: any) {
   }, [me?.id]);
 
   useEffect(() => { cargar(); }, [cargar]);
+
+  // Al socio sin viajes se le abre el catálogo: mostrarle un cartel
+  // que dice que no tiene nada es la peor primera impresión.
+  const [decidido, setDecidido] = useState(false);
+  useEffect(() => {
+    if (cargando || decidido) return;
+    if (lista.length === 0) setPestana('catalogo');
+    setDecidido(true);
+  }, [cargando, lista.length, decidido]);
 
   const futuros = lista
     .filter((v) => diasHasta(v.fecha) >= 0)
@@ -67,8 +78,31 @@ export default function ViajesScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={s.fondo} edges={['top']}>
-      <Text style={s.titulo}>Mis viajes</Text>
+      {/* Dos pestañas en vez de dos solapas en la barra de abajo:
+          es el mismo lugar mental, y cinco pestañas ya son muchas. */}
+      <View style={s.pestanas}>
+        <Pressable
+          style={[s.pestana, pestana === 'mios' && s.pestanaActiva]}
+          onPress={() => setPestana('mios')}
+        >
+          <Text style={[s.pestanaTxt, pestana === 'mios' && s.pestanaTxtActiva]}>
+            Mis viajes
+          </Text>
+        </Pressable>
+        <Pressable
+          style={[s.pestana, pestana === 'catalogo' && s.pestanaActiva]}
+          onPress={() => setPestana('catalogo')}
+        >
+          <Text style={[s.pestanaTxt, pestana === 'catalogo' && s.pestanaTxtActiva]}>
+            Descubrí
+          </Text>
+        </Pressable>
+      </View>
 
+      {pestana === 'catalogo' ? (
+        <CatalogoLista navigation={navigation} />
+      ) : (
+      <>
       {error && <Text style={s.error}>{error}</Text>}
 
       <SectionList
@@ -121,14 +155,17 @@ export default function ViajesScreen({ navigation }: any) {
           );
         }}
         ListEmptyComponent={
-          <View style={s.tarjeta}>
+          <Pressable style={s.tarjeta} onPress={() => setPestana('catalogo')}>
             <Text style={s.vacio}>
-              Todavía no tenés viajes cargados. Cuando reserves con nosotros, aparece acá
-              con tus puntos.
+              Todavía no tenés viajes cargados. Cuando reserves con nosotros,
+              aparece acá con tus puntos.
             </Text>
-          </View>
+            <Text style={s.vacioLink}>Mirá los viajes que tenemos →</Text>
+          </Pressable>
         }
       />
+      </>
+      )}
     </SafeAreaView>
   );
 }
@@ -142,6 +179,23 @@ const s = StyleSheet.create({
     paddingHorizontal: t.espacio.xl,
     paddingTop: t.espacio.md,
   },
+  pestanas: {
+    flexDirection: 'row',
+    paddingHorizontal: t.espacio.xl,
+    paddingTop: t.espacio.md,
+    gap: t.espacio.xl,
+    borderBottomWidth: 1,
+    borderBottomColor: t.color.borde,
+  },
+  pestana: {
+    paddingVertical: t.espacio.md,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+    marginBottom: -1,
+  },
+  pestanaActiva: { borderBottomColor: t.color.teal },
+  pestanaTxt: { ...t.texto.titulo, fontSize: 19, color: t.color.textoSuave },
+  pestanaTxtActiva: { color: t.color.texto },
   contenido: { padding: t.espacio.xl, paddingTop: t.espacio.md },
   seccion: {
     ...t.texto.chicoFuerte,
@@ -172,6 +226,7 @@ const s = StyleSheet.create({
   puntos: { ...t.texto.chicoFuerte, color: t.color.teal,  marginTop: t.espacio.md },
   notas: { ...t.texto.chico, color: t.color.textoSuave, marginTop: t.espacio.sm },
   vacio: { ...t.texto.cuerpo, color: t.color.textoSuave },
+  vacioLink: { ...t.texto.cuerpoFuerte, color: t.color.teal, marginTop: t.espacio.md },
   error: {
     ...t.texto.chico,
     color: t.color.error,

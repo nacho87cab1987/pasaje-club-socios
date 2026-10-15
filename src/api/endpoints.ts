@@ -6,6 +6,7 @@
 // ══════════════════════════════════════════════════════
 
 import { api, apiUpload } from './client';
+import { CONFIG } from '../config';
 
 // ── Tipos mínimos (ampliar a medida que se porten pantallas) ──
 
@@ -103,6 +104,61 @@ export const destinos = {
   /** Foto de portada del destino. */
   foto: (destino: string) =>
     api(`socios_destino_foto.php?destino=${encodeURIComponent(destino)}`),
+};
+
+// ── Catálogo de viajes ────────────────────────────────
+//
+// Es una API aparte: pública, sin token, la misma que usa la web.
+// Por eso no pasa por api(), que agrega el X-Token y apunta a
+// /socios/api.
+
+export type PaqueteCard = {
+  destino: string;
+  destino_slug: string;
+  pais?: string | null;
+  fecha_salida?: string | null;
+  precio_desde?: number | string | null;
+  moneda?: string | null;
+  portada?: string | null;
+  noches?: number | string | null;
+  base?: string | null;
+  origen?: string | null;
+  tipo?: string | null;
+};
+
+async function paquetesFetch(query: string) {
+  const r = await fetch(CONFIG.PAQUETES + query);
+  const txt = await r.text();
+  try {
+    return JSON.parse(txt);
+  } catch {
+    // Si el catálogo devuelve HTML (un error de PHP), el mensaje de
+    // JSON.parse no dice nada útil: mejor decir qué respondió.
+    throw new Error('El catálogo respondió ' + r.status);
+  }
+}
+
+export const paquetes = {
+  /** Un ítem por destino, con precio desde y portada. */
+  listar: (tipo?: 'grupal' | 'paquete') =>
+    paquetesFetch('?action=listado&mostrar=todos' + (tipo ? `&tipo=${tipo}` : '')),
+  /** Las salidas publicadas de un destino, con sus hoteles. */
+  destino: (slug: string) =>
+    paquetesFetch(`?action=destino&slug=${encodeURIComponent(slug)}`),
+};
+
+// ── Interés del socio en un destino ───────────────────
+export const interes = {
+  /** Deja el pedido de contacto y avisa a ventas. */
+  pedir: (datos: {
+    destino: string;
+    slug?: string;
+    precio?: number | null;
+    moneda?: string | null;
+    comentario?: string;
+  }) => api('socios_interes.php', { body: datos }),
+  /** Lo que ya pidió, para no ofrecerle pedir dos veces. */
+  mios: () => api('socios_interes.php?action=mios'),
 };
 
 // ── Wishlist, destinos guardados, ofertas ─────────────

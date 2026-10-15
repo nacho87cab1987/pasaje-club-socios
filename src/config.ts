@@ -18,6 +18,12 @@ export const CONFIG = {
   IMG_BENEFICIOS: `${HOST}/socios/imagenes_beneficios/`,
   IMG_AVISOS: `${HOST}/socios/imagenes_avisos/`,
 
+  /**
+   * El catálogo público de paquetes. Es otra API que la de socios:
+   * no pide token y la comparte con la web.
+   */
+  PAQUETES: `${HOST}/socios/api/paquetes_public.php`,
+
   /** Timeout de red en ms. Ferozo a veces tarda en despertar. */
   TIMEOUT: 20000,
 
